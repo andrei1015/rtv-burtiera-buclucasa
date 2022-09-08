@@ -16,6 +16,7 @@ cropsExist = os.path.exists(crops)
 # REFRESH DIRS DELETE OR SOMETHING
 if screensExist:
   shutil.rmtree(screens, ignore_errors=False, onerror=None)
+if os.path.exists('burtiere.txt'):
   os.remove('burtiere.txt')
 
 
@@ -48,12 +49,21 @@ for src_file in Path(screens).glob('cropped_*.*'):
 for imageName in os.listdir (crops):
   inputPath = os.path.join(crops, imageName)
   img = cv2.imread(inputPath)
+
   img = cv2.resize(img, None, fx=1.2, fy=1.2, interpolation=cv2.INTER_CUBIC)
+  # img = cv2.GaussianBlur(img, (5, 5), 0)
+  img = cv2.bilateralFilter(img,9,75,75)
   img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
   kernel = np.ones((1, 1), np.uint8)
   img = cv2.dilate(img, kernel, iterations=1)
   img = cv2.erode(img, kernel, iterations=1)
+
+  cv2.threshold(img,127,255,cv2.THRESH_BINARY)
+
+  # cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 31, 2)
+
+  # cv2.threshold(cv2.GaussianBlur(img, (5, 5), 0), 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
   
   text = pytesseract.image_to_string(img, lang='ron')
 
