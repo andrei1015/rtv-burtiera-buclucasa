@@ -1,4 +1,5 @@
 import cv2
+import numpy as np
 from wand.image import Image
 from wand.display import display
 from pytesseract import pytesseract
@@ -25,7 +26,7 @@ pytesseract.tesseract_cmd = path_to_tesseract
 os.makedirs(screens)
 
 
-os.system("ffmpeg -loglevel quiet -headers \"referer: https://www.romaniatv.net/\" -i \"https://livestream.romaniatv.net/clients/romaniatv/playlist.m3u8\" -vf fps=1/5 -t 00:05:00 screens/output%06d.jpg")
+os.system("ffmpeg -loglevel quiet -headers \"referer: https://www.romaniatv.net/\" -i \"https://livestream.romaniatv.net/clients/romaniatv/playlist.m3u8\" -vf fps=1/5 -t 00:01:00 screens/output%06d.jpg")
 
 for filename in os.listdir(screens):
 
@@ -47,12 +48,24 @@ for src_file in Path(screens).glob('cropped_*.*'):
 for imageName in os.listdir (crops):
   inputPath = os.path.join(crops, imageName)
   img = cv2.imread(inputPath)
+  img = cv2.resize(img, None, fx=1.2, fy=1.2, interpolation=cv2.INTER_CUBIC)
+  img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+  kernel = np.ones((1, 1), np.uint8)
+  img = cv2.dilate(img, kernel, iterations=1)
+  img = cv2.erode(img, kernel, iterations=1)
+  
   text = pytesseract.image_to_string(img, lang='ron')
 
   print(text)
   
   with open('burtiere.txt', 'a', encoding='utf-8') as f:
-    f.write(text + ' : ' + imageName + '\n\n')
+   # f.write(text + ' : ' + imageName + '\n\n')
+    f.write('\n\n===================\n\n')
+    f.write(imageName)
+    f.write('\n\n===================\n\n')
+    f.write(text)
+    f.write('\n\n-------------------\n\n')
 
 # for image in os.listdir(crops):
 #         print(os.path.join(crops, image))
